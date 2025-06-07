@@ -1,0 +1,84 @@
+﻿@{
+    ViewData["Title"] = "Trang Chủ";
+}
+
+<div class="text-center mt-5">
+    <h1 class="display-4">Hệ Thống Quản Lý Nhà Hàng</h1>
+    
+    @if (!User.Identity.IsAuthenticated)
+    {
+        <p class="lead">Chào mừng đến với hệ thống quản lý nhà hàng. Vui lòng đăng nhập để sử dụng các chức năng.</p>
+        <div class="mt-4">
+            <a asp-controller="Account" asp-action="Login" class="btn btn-primary btn-lg">Đăng Nhập</a>
+        </div>
+    }
+    else 
+    {
+        <p class="lead">Chào mừng @User.Identity.Name đến với hệ thống quản lý nhà hàng.</p>
+        <div class="mt-4">
+            <a asp-controller="MenuItem" asp-action="CustomerMenu" class="btn btn-success btn-lg">
+                <i class="fas fa-utensils me-2"></i>Xem Thực Đơn
+            </a>
+        </div>
+    }
+</div>
+
+<div class="row mt-5">
+    <div class="col-md-4 mb-4">
+        <div class="card shadow h-100">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="fas fa-clipboard-list me-2"></i>Đặt Bàn</h5>
+            </div>
+            <div class="card-body">
+                <p>Đặt bàn trực tuyến, chọn thời gian và số lượng người phù hợp.</p>
+                @if (User.Identity.IsAuthenticated)
+                {
+                    <a asp-controller="Reservation" asp-action="Create" class="btn btn-outline-primary mt-2">Đặt bàn ngay</a>
+                }
+                else
+                {
+                    <a asp-controller="Account" asp-action="Login" class="btn btn-outline-primary mt-2">Đăng nhập để đặt bàn</a>
+                }
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 mb-4">
+        <div class="card shadow h-100">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0"><i class="fas fa-utensils me-2"></i>Thực Đơn</h5>
+            </div>
+            <div class="card-body">
+                <p>Khám phá thực đơn phong phú với nhiều món ăn hấp dẫn.</p>
+                <a asp-controller="MenuItem" asp-action="CustomerMenu" class="btn btn-outline-success mt-2">Xem thực đơn</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 mb-4">
+        <div class="card shadow h-100">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0"><i class="fas fa-chair me-2"></i>Bàn Còn Trống</h5>
+            </div>
+            <div class="card-body">
+                <p>Xem danh sách các bàn còn trống và sức chứa của từng bàn.</p>
+                <a asp-controller="Table" asp-action="AvailableTables" class="btn btn-outline-info mt-2">Xem bàn trống</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+@if (User.Identity.IsAuthenticated)
+{
+    <div class="row mt-3">
+        <div class="col-md-12">
+            <div class="card shadow">
+                <div class="card-header bg-warning text-dark">
+                    <h5 class="mb-0"><i class="fas fa-history me-2"></i>Đơn đặt của tôi</h5>
+                </div>
+                <div class="card-body">
+                    <p>Theo dõi tình trạng đơn đặt bàn và lịch sử đặt bàn của bạn.</p>
+                    <a asp-controller="Reservation" asp-action="MyReservations" class="btn btn-outline-warning">Xem đơn đặt</a>
+                </div>
+            </div>
+        </div>
+    </div>
+}

@@ -1,0 +1,87 @@
+@model RestaurantManagement.Models.MenuItem
+
+@{
+    ViewData["Title"] = "Xóa món ăn";
+}
+
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card shadow">
+            <div class="card-header bg-danger text-white">
+                <h4 class="mb-0">@ViewData["Title"]</h4>
+            </div>
+            <div class="card-body">
+                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                
+                <h5 class="alert alert-warning">Bạn có chắc chắn muốn xóa món ăn này?</h5>
+                
+                <div class="row">
+                    <div class="col-md-4 mb-4">
+                        <img src="@(string.IsNullOrEmpty(Model.ImageUrl) ? "/images/no-image.png" : Model.ImageUrl)" 
+                             alt="@Model.Name" class="img-fluid rounded" style="max-width: 200px;" />
+                    </div>
+                    <div class="col-md-8">
+                        <dl class="row">
+                            <dt class="col-sm-4">Tên món:</dt>
+                            <dd class="col-sm-8">@Model.Name</dd>
+                            
+                            <dt class="col-sm-4">Danh mục:</dt>
+                            <dd class="col-sm-8">@Model.MenuCategory?.Name</dd>
+                            
+                            <dt class="col-sm-4">Giá:</dt>
+                            <dd class="col-sm-8">
+                                @if (Model.DiscountedPrice.HasValue)
+                                {
+                                    <span class="text-decoration-line-through">@Model.Price.ToString("N0") đ</span>
+                                    <span class="text-danger fw-bold ms-2">@Model.DiscountedPrice.Value.ToString("N0") đ</span>
+                                }
+                                else
+                                {
+                                    <span>@Model.Price.ToString("N0") đ</span>
+                                }
+                            </dd>
+                            
+                            <dt class="col-sm-4">Trạng thái:</dt>
+                            <dd class="col-sm-8">
+                                @if (Model.IsAvailable)
+                                {
+                                    <span class="badge bg-success">Đang phục vụ</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-danger">Ngừng phục vụ</span>
+                                }
+                            </dd>
+                            
+                            <dt class="col-sm-4">Số đơn hàng:</dt>
+                            <dd class="col-sm-8">@(Model.OrderItems?.Count ?? 0)</dd>
+                        </dl>
+                    </div>
+                </div>
+                
+                @if (Model.OrderItems?.Any() == true)
+                {
+                    <div class="alert alert-danger">
+                        <strong>Cảnh báo!</strong> Không thể xóa món ăn này vì đã có @Model.OrderItems.Count đơn hàng liên quan.
+                        Thay vào đó, bạn có thể đổi trạng thái thành "Ngừng phục vụ".
+                    </div>
+                }
+                
+                <form asp-action="Delete">
+                    <input type="hidden" asp-for="Id" />
+                    <div class="d-flex justify-content-between mt-3">
+                        <a asp-action="Index" class="btn btn-secondary">
+                            <i class="bi bi-arrow-left"></i> Trở lại
+                        </a>
+                        @if (Model.OrderItems == null || !Model.OrderItems.Any())
+                        {
+                            <button type="submit" class="btn btn-danger">
+                                <i class="bi bi-trash"></i> Xác nhận xóa
+                            </button>
+                        }
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div> 

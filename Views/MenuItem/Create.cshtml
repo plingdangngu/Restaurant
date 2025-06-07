@@ -1,0 +1,108 @@
+@model RestaurantManagement.ViewModels.MenuItemViewModel
+
+@{
+    ViewData["Title"] = "Thêm món mới";
+}
+
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0">@ViewData["Title"]</h4>
+            </div>
+            <div class="card-body">
+                <form asp-action="Create" enctype="multipart/form-data">
+                    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label asp-for="Name" class="form-label">Tên món</label>
+                                <input asp-for="Name" class="form-control" />
+                                <span asp-validation-for="Name" class="text-danger"></span>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label asp-for="CategoryId" class="form-label">Danh mục</label>
+                                <select asp-for="CategoryId" asp-items="Model.MenuCategories" class="form-select">
+                                    <option value="">-- Chọn danh mục --</option>
+                                </select>
+                                <span asp-validation-for="CategoryId" class="text-danger"></span>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label asp-for="Description" class="form-label">Mô tả</label>
+                                <textarea asp-for="Description" class="form-control" rows="3"></textarea>
+                                <span asp-validation-for="Description" class="text-danger"></span>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label asp-for="EstimatedCookingTime" class="form-label">Thời gian nấu (phút)</label>
+                                <input asp-for="EstimatedCookingTime" class="form-control" type="number" min="1" max="120" />
+                                <span asp-validation-for="EstimatedCookingTime" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label asp-for="Price" class="form-label">Giá</label>
+                                <div class="input-group">
+                                    <input asp-for="Price" class="form-control" />
+                                    <span class="input-group-text">VNĐ</span>
+                                </div>
+                                <span asp-validation-for="Price" class="text-danger"></span>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label asp-for="DiscountedPrice" class="form-label">Giá khuyến mãi</label>
+                                <div class="input-group">
+                                    <input asp-for="DiscountedPrice" class="form-control" />
+                                    <span class="input-group-text">VNĐ</span>
+                                </div>
+                                <span asp-validation-for="DiscountedPrice" class="text-danger"></span>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label asp-for="ImageFile" class="form-label">Hình ảnh</label>
+                                <input asp-for="ImageFile" type="file" class="form-control" accept="image/*" />
+                                <span asp-validation-for="ImageFile" class="text-danger"></span>
+                            </div>
+                            
+                            <div class="mb-3 form-check">
+                                <input asp-for="IsAvailable" class="form-check-input" />
+                                <label asp-for="IsAvailable" class="form-check-label">Đang phục vụ</label>
+                                <span asp-validation-for="IsAvailable" class="text-danger"></span>
+                            </div>
+                            
+                            <div class="mb-3 form-check">
+                                <input asp-for="IsFeatured" class="form-check-input" />
+                                <label asp-for="IsFeatured" class="form-check-label">Món nổi bật</label>
+                                <span asp-validation-for="IsFeatured" class="text-danger"></span>
+                            </div>
+                            
+                            @if (ViewContext.HttpContext.Request.Query.ContainsKey("categoryId"))
+                            {
+                                <div class="mb-3 form-check">
+                                    <input asp-for="ReturnToCategoryDetails" class="form-check-input" checked />
+                                    <label asp-for="ReturnToCategoryDetails" class="form-check-label">Trở về chi tiết danh mục sau khi thêm</label>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between">
+                        <a asp-action="Index" class="btn btn-secondary">
+                            <i class="bi bi-arrow-left"></i> Trở lại
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-save"></i> Lưu
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+} 

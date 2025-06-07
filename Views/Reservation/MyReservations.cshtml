@@ -1,0 +1,166 @@
+@model IEnumerable<RestaurantManagement.Models.Order>
+
+@{
+    ViewData["Title"] = "Đơn đặt của tôi";
+}
+
+<div class="container-fluid px-4">
+    <h1 class="mt-4">@ViewData["Title"]</h1>
+    <ol class="breadcrumb mb-4">
+        <li class="breadcrumb-item"><a href="/">Trang chủ</a></li>
+        <li class="breadcrumb-item active">Đơn đặt của tôi</li>
+    </ol>
+    
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            @TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    @if (!Model.Any())
+    {
+        <div class="alert alert-info">
+            <h4 class="alert-heading">Bạn chưa có đơn đặt nào!</h4>
+            <p>Hãy đặt bàn ngay để trải nghiệm dịch vụ tại nhà hàng của chúng tôi.</p>
+            <hr>
+            <div class="d-grid gap-2 d-md-flex justify-content-md-start">
+                <a asp-controller="Reservation" asp-action="Create" class="btn btn-primary">
+                    <i class="fas fa-calendar-plus me-2"></i>Đặt bàn ngay
+                </a>
+                <a asp-controller="MenuItem" asp-action="CustomerMenu" class="btn btn-outline-primary">
+                    <i class="fas fa-hamburger me-2"></i>Xem thực đơn
+                </a>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="card mb-4">
+            <div class="card-header">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div><i class="fas fa-calendar-alt me-1"></i>Danh sách các đơn đặt</div>
+                    <div>
+                        <a asp-controller="Reservation" asp-action="Create" class="btn btn-sm btn-success">
+                            <i class="fas fa-plus-circle me-1"></i>Đặt bàn mới
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-bordered table-hover" id="reservationsTable">
+                        <thead class="bg-light">
+                            <tr>
+                                <th>Mã đơn</th>
+                                <th>Bàn</th>
+                                <th>Thời gian</th>
+                                <th>Số người</th>
+                                <th>Trạng thái</th>
+                                <th>Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in Model)
+                            {
+                                <tr>
+                                    <td>#@item.Id</td>
+                                    <td>Bàn @item.Table?.Name (@item.Table?.Floor?.Name)</td>
+                                    <td>@item.OrderTime.ToString("dd/MM/yyyy HH:mm")</td>
+                                    <td>@item.PeopleCount người</td>
+                                    <td>
+                                        @if (item.Status == "Reserved")
+                                        {
+                                            <span class="badge bg-info">Đã đặt</span>
+                                        }
+                                        else if (item.Status == "Pending" || item.Status == "Processing")
+                                        {
+                                            <span class="badge bg-primary">Đang phục vụ</span>
+                                        }
+                                        else if (item.Status == "Completed")
+                                        {
+                                            <span class="badge bg-success">Hoàn thành</span>
+                                        }
+                                        else if (item.Status == "Cancelled")
+                                        {
+                                            <span class="badge bg-danger">Đã hủy</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary">@item.Status</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        <div class="d-flex gap-1">
+                                            <a asp-controller="Reservation" asp-action="Details" asp-route-id="@item.Id" class="btn btn-info" data-bs-toggle="tooltip" title="Chi tiết">
+                                                <i class="fas fa-eye"></i> <span class="d-none d-md-inline">Chi tiết</span>
+                                            </a>
+                                            @if (item.Status == "Reserved" || item.Status == "Pending")
+                                            {
+                                                <a asp-controller="Order" asp-action="AddItem" asp-route-id="@item.Id" class="btn btn-success" data-bs-toggle="tooltip" title="Thêm món">
+                                                    <i class="fas fa-utensils"></i> <span class="d-none d-md-inline">Thêm món</span>
+                                                </a>
+                                                <a asp-controller="Reservation" asp-action="Cancel" asp-route-id="@item.Id" class="btn btn-danger" data-bs-toggle="tooltip" title="Hủy đặt bàn"
+                                                   onclick="return confirm('Bạn có chắc chắn muốn hủy đặt bàn này?')">
+                                                    <i class="fas fa-times"></i> <span class="d-none d-md-inline">Hủy đặt</span>
+                                                </a>
+                                            }
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            // Kích hoạt tooltips
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+            var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl)
+            });
+            
+            // Tự động đóng alert sau 5 giây
+            setTimeout(function() {
+                $(".alert").alert('close');
+            }, 5000);
+
+            $('#reservationsTable').DataTable({
+                "language": {
+                    "lengthMenu": "Hiển thị _MENU_ dòng",
+                    "zeroRecords": "Không có dữ liệu",
+                    "info": "Hiển thị trang _PAGE_ / _PAGES_",
+                    "infoEmpty": "Không có dữ liệu",
+                    "infoFiltered": "(lọc từ _MAX_ dòng)",
+                    "search": "Tìm kiếm:",
+                    "paginate": {
+                        "first": "Đầu",
+                        "last": "Cuối",
+                        "next": "Sau",
+                        "previous": "Trước"
+                    }
+                },
+                "order": [[2, "desc"]],
+                "columnDefs": [
+                    { "orderable": false, "targets": 5 }
+                ],
+                "responsive": true
+            });
+        });
+    </script>
+} 

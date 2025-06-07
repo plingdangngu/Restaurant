@@ -1,0 +1,168 @@
+@model RestaurantManagement.Models.MenuItem
+
+@{
+    ViewData["Title"] = "Chi tiết món ăn";
+}
+
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                <h4 class="mb-0">@ViewData["Title"]</h4>
+                <div>
+                    <a asp-action="Index" class="btn btn-secondary">
+                        <i class="bi bi-arrow-left"></i> Trở lại
+                    </a>
+                    @if (User.IsInRole("Admin"))
+                    {
+                        <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-info">
+                            <i class="bi bi-pencil"></i> Chỉnh sửa
+                        </a>
+                    }
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4 mb-4">
+                        <div class="text-center">
+                            <img src="@(string.IsNullOrEmpty(Model.ImageUrl) ? "/images/no-image.png" : Model.ImageUrl)" 
+                                 alt="@Model.Name" class="img-fluid rounded" style="max-width: 250px;" />
+                        </div>
+                    </div>
+                    <div class="col-md-8">
+                        <h3 class="mb-3">
+                            @Model.Name
+                            @if (Model.IsFeatured)
+                            {
+                                <span class="badge bg-warning ms-2">
+                                    <i class="bi bi-star-fill"></i> Nổi bật
+                                </span>
+                            }
+                        </h3>
+                        
+                        <dl class="row">
+                            <dt class="col-sm-4">Danh mục:</dt>
+                            <dd class="col-sm-8">
+                                <a asp-controller="MenuCategory" asp-action="Details" asp-route-id="@Model.MenuCategoryId">
+                                    @Model.MenuCategory?.Name
+                                </a>
+                            </dd>
+                            
+                            <dt class="col-sm-4">Giá:</dt>
+                            <dd class="col-sm-8">
+                                @if (Model.DiscountedPrice.HasValue)
+                                {
+                                    <span class="text-decoration-line-through">@Model.Price.ToString("N0") đ</span>
+                                    <span class="text-danger fw-bold ms-2">@Model.DiscountedPrice.Value.ToString("N0") đ</span>
+                                }
+                                else
+                                {
+                                    <span class="fw-bold">@Model.Price.ToString("N0") đ</span>
+                                }
+                            </dd>
+                            
+                            <dt class="col-sm-4">Thời gian nấu:</dt>
+                            <dd class="col-sm-8">
+                                <span class="badge bg-secondary">@Model.EstimatedCookingTime phút</span>
+                            </dd>
+                            
+                            <dt class="col-sm-4">Trạng thái:</dt>
+                            <dd class="col-sm-8">
+                                @if (Model.IsAvailable)
+                                {
+                                    <span class="badge bg-success">Đang phục vụ</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-danger">Ngừng phục vụ</span>
+                                }
+                            </dd>
+                        </dl>
+
+                        @if (!string.IsNullOrEmpty(Model.Description))
+                        {
+                            <div class="mt-3">
+                                <h5>Mô tả:</h5>
+                                <p class="text-justify">@Model.Description</p>
+                            </div>
+                        }
+                        
+                        @if (User.IsInRole("Admin"))
+                        {
+                            <div class="d-flex gap-2 mt-3">
+                                <a asp-action="ToggleStatus" asp-route-id="@Model.Id" class="btn btn-@(Model.IsAvailable ? "secondary" : "success")">
+                                    <i class="bi bi-toggle-on"></i> @(Model.IsAvailable ? "Ngừng phục vụ" : "Bắt đầu phục vụ")
+                                </a>
+                                <a asp-action="ToggleFeatured" asp-route-id="@Model.Id" class="btn btn-@(Model.IsFeatured ? "secondary" : "warning")">
+                                    <i class="bi bi-star@(Model.IsFeatured ? "-fill" : "")"></i> @(Model.IsFeatured ? "Bỏ nổi bật" : "Đánh dấu nổi bật")
+                                </a>
+                                <a asp-action="Delete" asp-route-id="@Model.Id" class="btn btn-danger">
+                                    <i class="bi bi-trash"></i> Xóa món ăn
+                                </a>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        @if (Model.OrderItems?.Any() == true)
+        {
+            <div class="card shadow mt-4">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">Lịch sử đơn hàng</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Mã đơn hàng</th>
+                                    <th>Thời gian</th>
+                                    <th>Số lượng</th>
+                                    <th>Giá</th>
+                                    <th>Bàn</th>
+                                    <th>Trạng thái</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in Model.OrderItems.OrderByDescending(o => o.Order?.OrderTime))
+                                {
+                                    <tr>
+                                        <td>
+                                            <a asp-controller="Order" asp-action="Details" asp-route-id="@item.OrderId">#@item.OrderId</a>
+                                        </td>
+                                        <td>@(item.Order?.OrderTime.ToString("dd/MM/yyyy HH:mm") ?? "N/A")</td>
+                                        <td>@item.Quantity</td>
+                                        <td>@item.Price.ToString("N0") đ</td>
+                                        <td>
+                                            @if (item.Order?.Table != null)
+                                            {
+                                                <a asp-controller="Table" asp-action="Details" asp-route-id="@item.Order.TableId">
+                                                    @item.Order.Table.Name
+                                                </a>
+                                            }
+                                            else
+                                            {
+                                                <span>N/A</span>
+                                            }
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-@(item.Status == "Served" ? "success" : 
+                                                                item.Status == "Pending" ? "warning" : 
+                                                                item.Status == "Preparing" ? "primary" : 
+                                                                item.Status == "Ready" ? "info" : 
+                                                                item.Status == "Cancelled" ? "danger" : "secondary")">
+                                                @item.Status
+                                            </span>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div> 

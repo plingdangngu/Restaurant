@@ -1,0 +1,81 @@
+@model RestaurantManagement.Models.Table
+
+@{
+    ViewData["Title"] = "Thêm bàn mới";
+}
+
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0">@ViewData["Title"]</h4>
+            </div>
+            <div class="card-body">
+                <form asp-action="Create" method="post">
+                    <div asp-validation-summary="All" class="text-danger"></div>
+                    
+                    <div class="mb-3">
+                        <label asp-for="Name" class="form-label">Tên bàn <span class="text-danger">*</span></label>
+                        <input asp-for="Name" class="form-control" required />
+                        <span asp-validation-for="Name" class="text-danger"></span>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label asp-for="Capacity" class="form-label">Sức chứa <span class="text-danger">*</span></label>
+                        <input asp-for="Capacity" class="form-control" type="number" min="1" value="1" required />
+                        <span asp-validation-for="Capacity" class="text-danger"></span>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label asp-for="FloorId" class="form-label">Tầng <span class="text-danger">*</span></label>
+                        <select asp-for="FloorId" asp-items="ViewBag.FloorId" class="form-select" required>
+                            <option value="">-- Chọn tầng --</option>
+                        </select>
+                        <span asp-validation-for="FloorId" class="text-danger"></span>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label asp-for="Status" class="form-label">Trạng thái</label>
+                        <select asp-for="Status" class="form-select">
+                            <option value="Available" selected>Trống</option>
+                            <option value="Reserved">Đã đặt trước</option>
+                            <option value="Cleaning">Đang dọn dẹp</option>
+                        </select>
+                        <span asp-validation-for="Status" class="text-danger"></span>
+                    </div>
+                    
+                    <input type="hidden" asp-for="IsOccupied" value="false" />
+                    
+                    <div class="d-flex justify-content-between">
+                        <a asp-action="Index" class="btn btn-secondary">
+                            <i class="bi bi-arrow-left"></i> Trở lại
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-save"></i> Lưu
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <script>
+        $(document).ready(function() {
+            // Đảm bảo dropdown Tầng được chọn
+            if ($('#FloorId').val() === '') {
+                // Tự chọn tầng đầu tiên nếu tồn tại
+                if ($('#FloorId option').length > 1) {
+                    $('#FloorId option:eq(1)').prop('selected', true);
+                }
+            }
+            
+            // Đảm bảo Status được chọn
+            if ($('#Status').val() === '') {
+                $('#Status').val('Available');
+            }
+        });
+    </script>
+} 

@@ -1,0 +1,80 @@
+@model RestaurantManagement.Models.Table
+
+@{
+    ViewData["Title"] = "Xóa bàn";
+}
+
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card shadow">
+            <div class="card-header bg-danger text-white">
+                <h4 class="mb-0">@ViewData["Title"]</h4>
+            </div>
+            <div class="card-body">
+                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                
+                <h5 class="alert alert-warning">Bạn có chắc chắn muốn xóa bàn này?</h5>
+                
+                <dl class="row">
+                    <dt class="col-sm-3">Tên bàn:</dt>
+                    <dd class="col-sm-9">@Model.Name</dd>
+                    
+                    <dt class="col-sm-3">Tầng:</dt>
+                    <dd class="col-sm-9">@Model.Floor.Name</dd>
+                    
+                    <dt class="col-sm-3">Sức chứa:</dt>
+                    <dd class="col-sm-9">@Model.Capacity người</dd>
+                    
+                    <dt class="col-sm-3">Trạng thái:</dt>
+                    <dd class="col-sm-9">
+                        @if (Model.IsOccupied)
+                        {
+                            <span class="badge bg-danger">Đang sử dụng</span>
+                        }
+                        else if (Model.Status == "Reserved")
+                        {
+                            <span class="badge bg-warning">Đã đặt trước</span>
+                        }
+                        else if (Model.Status == "Cleaning")
+                        {
+                            <span class="badge bg-info">Đang dọn dẹp</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-success">Trống</span>
+                        }
+                    </dd>
+                </dl>
+                
+                @if (Model.IsOccupied)
+                {
+                    <div class="alert alert-danger">
+                        <strong>Cảnh báo!</strong> Không thể xóa bàn đang được sử dụng.
+                    </div>
+                }
+                
+                @if (Model.Orders != null && Model.Orders.Any())
+                {
+                    <div class="alert alert-danger">
+                        <strong>Cảnh báo!</strong> Không thể xóa bàn này vì đã có @Model.Orders.Count đơn hàng liên quan.
+                    </div>
+                }
+                
+                <form asp-action="Delete">
+                    <input type="hidden" asp-for="Id" />
+                    <div class="d-flex justify-content-between mt-3">
+                        <a asp-action="Index" class="btn btn-secondary">
+                            <i class="bi bi-arrow-left"></i> Trở lại
+                        </a>
+                        @if (!Model.IsOccupied && (Model.Orders == null || !Model.Orders.Any()))
+                        {
+                            <button type="submit" class="btn btn-danger">
+                                <i class="bi bi-trash"></i> Xác nhận xóa
+                            </button>
+                        }
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div> 

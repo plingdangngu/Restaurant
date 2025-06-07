@@ -1,0 +1,30 @@
+@{
+    ViewData["Title"] = "Không có quyền truy cập";
+}
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card border-danger shadow-sm">
+                <div class="card-header bg-danger text-white">
+                    <h4 class="mb-0"><i class="fas fa-exclamation-triangle me-2"></i>@ViewData["Title"]</h4>
+                </div>
+                <div class="card-body text-center py-5">
+                    <i class="fas fa-lock fa-4x text-danger mb-4"></i>
+                    <h2 class="text-danger mb-4">Truy cập bị từ chối!</h2>
+                    <p class="lead">Bạn không có quyền truy cập vào trang này. Trang này chỉ dành cho nhân viên và quản trị viên.</p>
+                    <p class="text-muted mb-4">Vui lòng liên hệ với quản trị viên nếu bạn cần quyền truy cập.</p>
+                    
+                    <div class="d-flex justify-content-center gap-3">
+                        <a asp-controller="Home" asp-action="Index" class="btn btn-primary">
+                            <i class="fas fa-home me-2"></i>Về trang chủ
+                        </a>
+                        <a asp-controller="Account" asp-action="Login" class="btn btn-outline-secondary">
+                            <i class="fas fa-sign-in-alt me-2"></i>Đăng nhập với tài khoản khác
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div> 

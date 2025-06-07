@@ -1,0 +1,146 @@
+@model RestaurantManagement.ViewModels.CustomerMenuViewModel
+
+@{
+    ViewData["Title"] = "Thực đơn nhà hàng";
+}
+
+<div class="container-fluid px-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="mt-4">@ViewData["Title"]</h1>
+    </div>
+
+    <!-- Categories Pills -->
+    <div class="mb-4 categories-nav">
+        <ul class="nav nav-pills">
+            <li class="nav-item">
+                <a class="nav-link @(Model.SelectedCategoryId == null ? "active" : "")" 
+                   asp-controller="MenuItem" asp-action="CustomerMenu">
+                    <i class="fas fa-utensils me-2"></i>Tất cả
+                </a>
+            </li>
+            @foreach (var category in Model.Categories)
+            {
+                <li class="nav-item">
+                    <a class="nav-link @(Model.SelectedCategoryId == category.Id ? "active" : "")" 
+                       asp-controller="MenuItem" asp-action="CustomerMenu" asp-route-categoryId="@category.Id">
+                        @category.Name
+                    </a>
+                </li>
+            }
+        </ul>
+    </div>
+
+    <div class="row">
+        @{
+            // Group menu items by category for better organization
+            var groupedItems = Model.MenuItems.GroupBy(m => m.MenuCategory?.Name);
+        }
+
+        @foreach (var group in groupedItems)
+        {
+            <div class="col-12 mb-4">
+                <h3 class="border-bottom pb-2">@group.Key</h3>
+                <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+                    @foreach (var item in group)
+                    {
+                        <div class="col">
+                            <div class="card h-100 menu-item-card">
+                                @if (!string.IsNullOrEmpty(item.ImageUrl))
+                                {
+                                    <img src="@item.ImageUrl" class="card-img-top" alt="@item.Name" style="height: 200px; object-fit: cover;">
+                                }
+                                else
+                                {
+                                    <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height: 200px;">
+                                        <i class="fas fa-utensils fa-3x text-muted"></i>
+                                    </div>
+                                }
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <h5 class="card-title">@item.Name</h5>
+                                        @if (item.IsFeatured)
+                                        {
+                                            <span class="badge bg-danger">Đặc biệt</span>
+                                        }
+                                    </div>
+                                    <p class="card-text text-muted">
+                                        @if (!string.IsNullOrEmpty(item.Description))
+                                        {
+                                            @item.Description
+                                        }
+                                    </p>
+                                </div>
+                                <div class="card-footer d-flex justify-content-between align-items-center">
+                                    <div class="price-tag">
+                                        @if (item.DiscountedPrice.HasValue)
+                                        {
+                                            <small class="text-decoration-line-through text-muted">@item.Price.ToString("N0") đ</small>
+                                            <span class="fw-bold text-danger">@item.DiscountedPrice.Value.ToString("N0") đ</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="fw-bold">@item.Price.ToString("N0") đ</span>
+                                        }
+                                    </div>
+                                    <div class="cooking-time">
+                                        <i class="fas fa-clock text-muted"></i>
+                                        <small class="text-muted">@item.EstimatedCookingTime phút</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+
+        @if (!Model.MenuItems.Any())
+        {
+            <div class="col-12">
+                <div class="alert alert-info">
+                    <h4 class="alert-heading">Không tìm thấy món ăn!</h4>
+                    <p>Không có món ăn nào phù hợp với tiêu chí tìm kiếm của bạn.</p>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+@section Styles {
+    <style>
+        .categories-nav {
+            overflow-x: auto;
+            white-space: nowrap;
+            padding-bottom: 10px;
+        }
+        
+        .categories-nav .nav-pills {
+            display: inline-flex;
+        }
+        
+        .categories-nav .nav-item {
+            margin-right: 5px;
+        }
+        
+        .menu-item-card {
+            transition: transform 0.3s ease;
+        }
+        
+        .menu-item-card:hover {
+            transform: translateY(-5px);
+        }
+    </style>
+}
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            // Scroll to active category
+            const activeLink = $('.categories-nav .nav-link.active');
+            if (activeLink.length) {
+                const container = $('.categories-nav');
+                container.scrollLeft(activeLink.position().left - 20);
+            }
+        });
+    </script>
+} 

@@ -1,0 +1,96 @@
+@model RestaurantManagement.ViewModels.OrderCreateViewModel
+
+@{
+    ViewData["Title"] = "Tạo đơn hàng mới";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container-fluid px-4">
+    <h1 class="mt-4">@ViewData["Title"]</h1>
+    <ol class="breadcrumb mb-4">
+        <li class="breadcrumb-item"><a href="/">Trang chủ</a></li>
+        <li class="breadcrumb-item"><a asp-action="Index">Danh sách đơn hàng</a></li>
+        <li class="breadcrumb-item active">@ViewData["Title"]</li>
+    </ol>
+
+    <div class="card mb-4">
+        <div class="card-header">
+            <i class="fas fa-shopping-cart me-1"></i>
+            @ViewData["Title"]
+        </div>
+        <div class="card-body">
+            <form asp-action="Create">
+                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label asp-for="TableId" class="control-label"></label>
+                            <select asp-for="TableId" asp-items="Model.TablesSelectList" class="form-select">
+                                <option value="">-- Chọn bàn --</option>
+                            </select>
+                            <span asp-validation-for="TableId" class="text-danger"></span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label asp-for="CustomerId" class="control-label"></label>
+                            <select asp-for="CustomerId" asp-items="Model.Customers" class="form-select">
+                                <option value="">-- Chọn khách hàng (không bắt buộc) --</option>
+                            </select>
+                            <span asp-validation-for="CustomerId" class="text-danger"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label asp-for="NumberOfGuests" class="control-label">Số người</label>
+                            <input asp-for="NumberOfGuests" class="form-control" min="1" />
+                            <span asp-validation-for="NumberOfGuests" class="text-danger"></span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label asp-for="OrderDate" class="control-label">Thời gian đặt</label>
+                            <input asp-for="OrderDate" class="form-control" type="datetime-local" value="@Model.OrderDate.ToString("yyyy-MM-ddTHH:mm")" />
+                            <span asp-validation-for="OrderDate" class="text-danger"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-12">
+                        <div class="form-group">
+                            <label asp-for="Notes" class="control-label"></label>
+                            <textarea asp-for="Notes" class="form-control" rows="3"></textarea>
+                            <span asp-validation-for="Notes" class="text-danger"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group mt-3">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save me-1"></i> Tạo đơn hàng
+                    </button>
+                    <a asp-action="Index" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left me-1"></i> Quay lại danh sách
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <script>
+        $(document).ready(function () {
+            // Initialize select2 for dropdowns
+            $('.form-select').select2({
+                theme: 'bootstrap-5'
+            });
+        });
+    </script>
+} 

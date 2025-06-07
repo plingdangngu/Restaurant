@@ -1,0 +1,581 @@
+@model RestaurantManagement.ViewModels.AddItemViewModel
+
+@{
+    ViewData["Title"] = "Thêm món vào đơn hàng";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
+    <style>
+        .menu-item-card {
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border: 2px solid transparent;
+        }
+        
+        .menu-item-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+        
+        .menu-item-card.selected {
+            border-color: #0d6efd;
+            background-color: rgba(13, 110, 253, 0.05);
+        }
+        
+        .category-badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            font-size: 0.8rem;
+        }
+        
+        .price-tag {
+            font-size: 1.2rem;
+        }
+        
+        #quantityInput {
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+        
+        .search-box {
+            position: relative;
+        }
+        
+        .search-box i {
+            position: absolute;
+            left: 15px;
+            top: 12px;
+            color: #6c757d;
+        }
+        
+        .search-box input {
+            padding-left: 40px;
+        }
+
+        .cart-badge {
+            position: absolute;
+            top: -10px;
+            right: -10px;
+            font-size: 0.8rem;
+            background-color: red;
+        }
+
+        .cart-item {
+            transition: all 0.2s;
+            border-left: 3px solid transparent;
+        }
+
+        .cart-item:hover {
+            background-color: rgba(0,0,0,.03);
+            border-left: 3px solid #0d6efd;
+        }
+
+        .cart-summary {
+            position: sticky;
+            top: 20px;
+        }
+
+        #cartItems {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .cart-total {
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+
+        .pulse-animation {
+            animation: pulse 1s infinite;
+        }
+
+        @@keyframes pulse {
+            0% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.05);
+            }
+            100% {
+                transform: scale(1);
+            }
+        }
+        
+        .tooltip-inner {
+            max-width: 200px;
+            background-color: #28a745;
+        }
+    </style>
+}
+
+<div class="container-fluid px-4">
+    <h1 class="mt-4">@ViewData["Title"]</h1>
+    <ol class="breadcrumb mb-4">
+        <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index">Trang chủ</a></li>
+        <li class="breadcrumb-item"><a asp-controller="Order" asp-action="Details" asp-route-id="@Model.OrderId">Chi tiết đơn hàng</a></li>
+        <li class="breadcrumb-item active">Thêm món</li>
+    </ol>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+    
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            @TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <div class="row">
+        <!-- Danh sách món ăn -->
+        <div class="col-md-8">
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <i class="fas fa-utensils me-1"></i>
+                            Thêm món vào đơn hàng #@Model.OrderId
+                        </div>
+                        <div>
+                            <button type="button" class="btn btn-sm btn-light" onclick="history.back()">
+                                <i class="fas fa-arrow-left"></i> Quay lại
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card-body p-0">
+                    <!-- Menu tabs -->
+                    <ul class="nav nav-tabs" id="menuCategoryTabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="all-tab" data-bs-toggle="tab" data-bs-target="#all" type="button" role="tab" aria-controls="all" aria-selected="true">
+                                <i class="fas fa-utensils me-1"></i> Tất cả
+                            </button>
+                        </li>
+                        @if(Model.MenuCategories != null && Model.MenuCategories.Any()) 
+                        {
+                            foreach(var category in Model.MenuCategories.Keys) 
+                            {
+                                var safeCategoryId = "category-" + category.Replace(" ", "-").ToLower();
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link" id="@(safeCategoryId)-tab" data-bs-toggle="tab" data-bs-target="#@safeCategoryId" type="button" role="tab" aria-controls="@safeCategoryId" aria-selected="false">
+                                        @category
+                                    </button>
+                                </li>
+                            }
+                        }
+                    </ul>
+                    
+                    <div class="p-3">
+                        <div class="search-box mb-3">
+                            <i class="fas fa-search"></i>
+                            <input type="text" class="form-control" id="menuSearchInput" placeholder="Tìm kiếm món ăn...">
+                        </div>
+                    </div>
+                    
+                    <div class="tab-content p-3" id="menuCategoryContent">
+                        <!-- Tab tất cả món ăn -->
+                        <div class="tab-pane fade show active" id="all" role="tabpanel" aria-labelledby="all-tab">
+                            <div class="row row-cols-1 row-cols-md-3 g-4" id="menuItemsContainer">
+                                @if (Model.MenuItems != null && Model.MenuItems.Any())
+                                {
+                                    foreach (var item in Model.MenuItems)
+                                    {
+                                        var itemData = item.Text.Split("(");
+                                        var itemName = itemData[0].Trim();
+                                        var itemPrice = itemData.Length > 1 ? itemData[1].Replace(")", "").Trim() : "";
+                                        var numericPrice = decimal.TryParse(itemPrice.Replace("₫", "").Replace(".", "").Replace(",", ""), out decimal price) ? price : 0;
+                                        
+                                        <div class="col menu-item">
+                                            <div class="card h-100 menu-item-card" 
+                                                 data-id="@item.Value" 
+                                                 data-name="@itemName"
+                                                 data-price="@numericPrice">
+                                                <div class="card-body">
+                                                    <h5 class="card-title fw-bold">@itemName</h5>
+                                                    <p class="card-text text-danger fw-bold price-tag">@itemPrice</p>
+                                                    <div class="d-flex mt-3">
+                                                        <div class="input-group me-2" style="width: 120px;">
+                                                            <button type="button" class="btn btn-outline-secondary btn-decrease">
+                                                                <i class="fas fa-minus"></i>
+                                                            </button>
+                                                            <input type="text" class="form-control text-center item-quantity" value="1" min="1" max="99">
+                                                            <button type="button" class="btn btn-outline-secondary btn-increase">
+                                                                <i class="fas fa-plus"></i>
+                                                            </button>
+                                                        </div>
+                                                        <button type="button" class="btn btn-primary flex-grow-1 add-to-cart-btn" data-id="@item.Value">
+                                                            <i class="fas fa-cart-plus"></i> Thêm
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    }
+                                }
+                                else
+                                {
+                                    <div class="col-12 text-center py-5">
+                                        <div class="alert alert-warning">
+                                            <i class="fas fa-exclamation-triangle"></i>
+                                            Không có món ăn nào khả dụng. Vui lòng kiểm tra lại danh sách món ăn!
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                        
+                        <!-- Tab cho từng danh mục -->
+                        @if(Model.MenuCategories != null && Model.MenuCategories.Any())
+                        {
+                            foreach(var category in Model.MenuCategories)
+                            {
+                                var safeCategoryId = "category-" + category.Key.Replace(" ", "-").ToLower();
+                                <div class="tab-pane fade" id="@safeCategoryId" role="tabpanel" aria-labelledby="@(safeCategoryId)-tab">
+                                    <div class="row row-cols-1 row-cols-md-3 g-4">
+                                        @if(category.Value != null && category.Value.Any())
+                                        {
+                                            foreach(var menuItem in category.Value)
+                                            {
+                                                <div class="col menu-item">
+                                                    <div class="card h-100 menu-item-card" 
+                                                         data-id="@menuItem.Id" 
+                                                         data-name="@menuItem.Name"
+                                                         data-price="@menuItem.Price">
+                                                        @if (!string.IsNullOrEmpty(menuItem.ImageUrl))
+                                                        {
+                                                            <img src="@menuItem.ImageUrl" class="card-img-top" alt="@menuItem.Name" style="height: 120px; object-fit: cover;">
+                                                        }
+                                                        <div class="card-body">
+                                                            <h5 class="card-title fw-bold">@menuItem.Name</h5>
+                                                            <p class="card-text text-danger fw-bold price-tag">@menuItem.Price.ToString("C0")</p>
+                                                            @if(!string.IsNullOrEmpty(menuItem.Description))
+                                                            {
+                                                                <p class="card-text small text-muted">@menuItem.Description</p>
+                                                            }
+                                                            <div class="d-flex mt-3">
+                                                                <div class="input-group me-2" style="width: 120px;">
+                                                                    <button type="button" class="btn btn-outline-secondary btn-decrease">
+                                                                        <i class="fas fa-minus"></i>
+                                                                    </button>
+                                                                    <input type="text" class="form-control text-center item-quantity" value="1" min="1" max="99">
+                                                                    <button type="button" class="btn btn-outline-secondary btn-increase">
+                                                                        <i class="fas fa-plus"></i>
+                                                                    </button>
+                                                                </div>
+                                                                <button type="button" class="btn btn-primary flex-grow-1 add-to-cart-btn" data-id="@menuItem.Id">
+                                                                    <i class="fas fa-cart-plus"></i> Thêm
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            }
+                                        }
+                                        else 
+                                        {
+                                            <div class="col-12 text-center py-5">
+                                                <div class="alert alert-warning">
+                                                    <i class="fas fa-exclamation-triangle"></i>
+                                                    Không có món ăn nào trong danh mục này!
+                                                </div>
+                                            </div>
+                                        }
+                                    </div>
+                                </div>
+                            }
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Giỏ hàng tạm thời -->
+        <div class="col-md-4">
+            <div class="card cart-summary mb-4">
+                <div class="card-header bg-success text-white">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <i class="fas fa-shopping-cart me-1"></i>
+                            Giỏ hàng của bạn
+                        </div>
+                        <div>
+                            <span class="badge bg-light text-success" id="cartCount">0</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div id="emptyCart">
+                        <div class="text-center py-5">
+                            <i class="fas fa-shopping-cart fa-3x text-muted mb-3"></i>
+                            <p>Giỏ hàng trống</p>
+                            <p class="small text-muted">Vui lòng thêm món ăn vào giỏ hàng</p>
+                        </div>
+                    </div>
+                    <div id="cartItems" class="d-none">
+                        <!-- Danh sách món trong giỏ hàng được thêm bằng JS -->
+                    </div>
+                    <div id="cartFooter" class="mt-3 d-none">
+                        <hr>
+                        <div class="d-flex justify-content-between align-items-center cart-total">
+                            <span>Tổng cộng:</span>
+                            <span class="text-danger" id="cartTotal">0 VNĐ</span>
+                        </div>
+                        
+                        <div class="form-group mt-3">
+                            <label class="form-label">Ghi chú đặc biệt:</label>
+                            <textarea id="cartNotes" class="form-control" rows="2" placeholder="Thêm ghi chú cho cả đơn hàng..."></textarea>
+                        </div>
+                        
+                        <div class="d-grid gap-2 mt-3">
+                            <button type="button" id="clearCartBtn" class="btn btn-outline-danger">
+                                <i class="fas fa-trash-alt me-1"></i> Xóa giỏ hàng
+                            </button>
+                            <button type="button" id="checkoutBtn" class="btn btn-primary btn-lg pulse-animation">
+                                <i class="fas fa-check-circle me-1"></i> Thêm tất cả vào đơn hàng
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Form ẩn để submit dữ liệu -->
+    <form asp-action="AddMultipleItems" method="post" id="addItemsForm">
+        <input type="hidden" name="OrderId" value="@Model.OrderId" />
+        <input type="hidden" name="CartItems" id="cartItemsJson" />
+        <input type="hidden" name="Notes" id="cartNotesHidden" />
+    </form>
+    
+    <!-- Các nút thao tác chính ở cuối trang -->
+    <div class="row mb-5">
+        <div class="col-12 d-flex justify-content-between">
+            <button type="button" class="btn btn-secondary" onclick="history.back()">
+                <i class="fas fa-arrow-left"></i> Quay lại đơn hàng
+            </button>
+            <div>
+                <a href="@Url.Action("Payment", "Order", new { id = Model.OrderId })" class="btn btn-primary">
+                    <i class="fas fa-cash-register"></i> Đến trang thanh toán
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            // Cấu hình toastr
+            toastr.options = {
+                "closeButton": true,
+                "progressBar": true,
+                "positionClass": "toast-bottom-right",
+                "timeOut": "2000"
+            };
+            
+            // Khởi tạo mảng giỏ hàng
+            let cart = [];
+            
+            // Hiển thị thông báo lỗi nếu có
+            @if (TempData["ErrorMessage"] != null)
+            {
+                <text>toastr.error('@TempData["ErrorMessage"]');</text>
+            }
+            
+            // Xử lý nút tăng/giảm số lượng
+            $(document).on("click", ".btn-increase", function() {
+                let input = $(this).siblings(".item-quantity");
+                let currentQty = parseInt(input.val());
+                if (currentQty < 99) {
+                    input.val(currentQty + 1);
+                }
+            });
+
+            $(document).on("click", ".btn-decrease", function() {
+                let input = $(this).siblings(".item-quantity");
+                let currentQty = parseInt(input.val());
+                if (currentQty > 1) {
+                    input.val(currentQty - 1);
+                }
+            });
+
+            // Xử lý nút thêm vào giỏ hàng
+            $(document).on("click", ".add-to-cart-btn", function() {
+                const menuItemCard = $(this).closest(".menu-item-card");
+                const menuItemId = parseInt(menuItemCard.data("id"));
+                const menuItemName = menuItemCard.data("name");
+                const price = parseFloat(menuItemCard.data("price"));
+                const quantity = parseInt(menuItemCard.find(".item-quantity").val());
+                
+                // Kiểm tra món đã có trong giỏ hàng chưa
+                const existingItemIndex = cart.findIndex(item => item.menuItemId === menuItemId);
+                
+                if (existingItemIndex !== -1) {
+                    // Nếu đã có, cập nhật số lượng
+                    cart[existingItemIndex].quantity += quantity;
+                    toastr.info(`Đã cập nhật số lượng: ${menuItemName}`);
+                } else {
+                    // Nếu chưa có, thêm mới vào giỏ hàng
+                    cart.push({
+                        menuItemId: menuItemId,
+                        menuItemName: menuItemName,
+                        price: price,
+                        quantity: quantity,
+                        notes: "",
+                    });
+                    toastr.success(`Đã thêm vào giỏ: ${menuItemName}`);
+                }
+                
+                // Hiệu ứng thành công
+                menuItemCard.addClass("border-success");
+                setTimeout(() => {
+                    menuItemCard.removeClass("border-success");
+                }, 500);
+                
+                // Reset số lượng về 1
+                menuItemCard.find(".item-quantity").val(1);
+                
+                // Cập nhật giỏ hàng
+                updateCartDisplay();
+            });
+            
+            // Xử lý xóa món khỏi giỏ hàng
+            $(document).on("click", ".remove-item-btn", function() {
+                const menuItemId = $(this).data("id");
+                const index = cart.findIndex(item => item.menuItemId === menuItemId);
+                
+                if (index !== -1) {
+                    const removedItem = cart[index];
+                    cart.splice(index, 1);
+                    toastr.warning(`Đã xóa khỏi giỏ: ${removedItem.menuItemName}`);
+                    updateCartDisplay();
+                }
+            });
+            
+            // Xử lý nút xóa giỏ hàng
+            $("#clearCartBtn").click(function() {
+                if (cart.length > 0) {
+                    if (confirm("Bạn có chắc chắn muốn xóa tất cả món ăn khỏi giỏ hàng?")) {
+                        cart = [];
+                        updateCartDisplay();
+                        toastr.warning("Đã xóa tất cả món khỏi giỏ hàng");
+                    }
+                } else {
+                    toastr.error("Giỏ hàng đã trống");
+                }
+            });
+            
+            // Xử lý nút thanh toán
+            $("#checkoutBtn").click(function() {
+                if (cart.length === 0) {
+                    toastr.error("Vui lòng thêm ít nhất một món vào giỏ hàng");
+                    return;
+                }
+                
+                // Lấy ghi chú
+                const notes = $("#cartNotes").val();
+                
+                // Cập nhật ghi chú cho tất cả các món trong giỏ hàng
+                cart.forEach(item => {
+                    item.notes = notes;
+                });
+                
+                // Cập nhật dữ liệu vào form
+                $("#cartItemsJson").val(JSON.stringify(cart));
+                $("#cartNotesHidden").val(notes);
+                
+                // Submit form
+                $("#addItemsForm").submit();
+            });
+            
+            // Xử lý tìm kiếm món ăn
+            $("#menuSearchInput").on("keyup", function() {
+                const value = $(this).val().toLowerCase();
+                $(".menu-item").filter(function() {
+                    const text = $(this).text().toLowerCase();
+                    const matches = text.indexOf(value) > -1;
+                    $(this).toggle(matches);
+                });
+                
+                // Nếu không có kết quả, hiển thị thông báo
+                if ($(".menu-item:visible").length === 0) {
+                    if ($("#noResults").length === 0) {
+                        $("#menuItemsContainer").append('<div id="noResults" class="col-12 text-center py-4"><div class="alert alert-info">Không tìm thấy món ăn nào phù hợp</div></div>');
+                    }
+                } else {
+                    $("#noResults").remove();
+                }
+                
+                // Tự động chuyển về tab "Tất cả" khi tìm kiếm
+                $('#all-tab').tab('show');
+            });
+            
+            // Cập nhật hiển thị giỏ hàng
+            function updateCartDisplay() {
+                // Cập nhật số lượng món trong giỏ
+                $("#cartCount").text(cart.length);
+                
+                // Xử lý hiện/ẩn nội dung giỏ hàng
+                if (cart.length === 0) {
+                    $("#emptyCart").removeClass("d-none");
+                    $("#cartItems").addClass("d-none");
+                    $("#cartFooter").addClass("d-none");
+                    $(".pulse-animation").removeClass("pulse-animation");
+                } else {
+                    $("#emptyCart").addClass("d-none");
+                    $("#cartItems").removeClass("d-none");
+                    $("#cartFooter").removeClass("d-none");
+                    $("#checkoutBtn").addClass("pulse-animation");
+                    
+                    // Hiển thị danh sách món trong giỏ
+                    let cartHtml = '';
+                    let cartTotal = 0;
+                    
+                    cart.forEach((item, index) => {
+                        const subtotal = item.price * item.quantity;
+                        cartTotal += subtotal;
+                        
+                        cartHtml += `
+                            <div class="cart-item mb-2 p-2 border-bottom">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <span class="badge bg-primary me-2">${item.quantity}</span>
+                                        <strong>${item.menuItemName}</strong>
+                                    </div>
+                                    <button type="button" class="btn btn-sm btn-outline-danger remove-item-btn" data-id="${item.menuItemId}">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </div>
+                                <div class="d-flex justify-content-between mt-1">
+                                    <small class="text-muted">${item.price.toLocaleString('vi-VN')} x ${item.quantity}</small>
+                                    <strong>${subtotal.toLocaleString('vi-VN')} VNĐ</strong>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    
+                    // Cập nhật HTML và tổng tiền
+                    $("#cartItems").html(cartHtml);
+                    $("#cartTotal").text(cartTotal.toLocaleString('vi-VN') + " VNĐ");
+                }
+            }
+            
+            // Kích hoạt tooltips
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+            var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl)
+            });
+        });
+    </script>
+} 

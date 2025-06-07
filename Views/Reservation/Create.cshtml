@@ -1,0 +1,295 @@
+@model RestaurantManagement.ViewModels.ReservationViewModel
+
+@{
+    ViewData["Title"] = "Đặt bàn";
+}
+
+<div class="container py-4">
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h1 class="mb-2">Đặt bàn tại nhà hàng</h1>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="/">Trang chủ</a></li>
+        <li class="breadcrumb-item active">Đặt bàn</li>
+    </ol>
+            </nav>
+        </div>
+        <div class="col-md-4 d-flex justify-content-md-end align-items-center">
+            <span class="badge bg-primary p-2 rounded-pill">
+                <i class="fas fa-clock me-1"></i> Giờ mở cửa: 08:00 - 22:00
+            </span>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card reservation-card mb-4 shadow">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h4 class="mb-0"><i class="fas fa-calendar-plus me-2"></i>Thông tin đặt bàn</h4>
+                    <span class="badge bg-secondary p-2">
+                        <i class="fas fa-user-clock me-1"></i> Xác nhận nhanh
+                    </span>
+                </div>
+                <div class="card-body">
+                    @if(TempData["ErrorMessage"] != null)
+                    {
+                        <div class="alert alert-danger" id="errorMessage">
+                            @TempData["ErrorMessage"]
+                        </div>
+                    }
+
+                    <form asp-action="Create" method="post" class="needs-validation" novalidate>
+                        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <div class="form-floating mb-3">
+                                        <input asp-for="PeopleCount" id="peopleCount" class="form-control" min="1" max="100" required />
+                                    <label asp-for="PeopleCount">Số người</label>
+                                    <span asp-validation-for="PeopleCount" class="text-danger"></span>
+                                </div>
+                                </div>
+
+                            <div class="col-md-6">
+                                <div class="form-floating mb-3">
+                                    <input asp-for="ReservationTime" class="form-control" type="datetime-local" required />
+                                    <label asp-for="ReservationTime">Thời gian đặt bàn</label>
+                                    <span asp-validation-for="ReservationTime" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-grid mb-4">
+                            <button type="button" id="btnFilterTables" class="btn btn-outline-primary btn-lg">
+                                <i class="fas fa-filter me-2"></i> Tìm bàn phù hợp với <span id="peopleCountDisplay">2</span> người
+                            </button>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label fw-medium">Chọn bàn phù hợp</label>
+                            <select asp-for="TableId" id="tableSelect" class="form-select form-select-lg mb-2" required>
+                                        <option value="">-- Chọn bàn --</option>
+                                        @foreach (var table in Model.AvailableTables)
+                                        {
+                                            <option value="@table.Id" data-capacity="@table.Capacity">
+                                                Bàn @table.Name - @table.Capacity người - Tầng @table.Floor?.Name
+                                            </option>
+                                        }
+                                    </select>
+                                    <span asp-validation-for="TableId" class="text-danger"></span>
+                            <div id="noTablesMessage" class="alert alert-warning mt-2" style="display: none;">
+                                <i class="fas fa-exclamation-circle"></i> Không có bàn nào phù hợp. Vui lòng thử số người khác hoặc thời gian khác.
+                            </div>
+                            <div id="tableCapacityInfo" class="small mt-2"></div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label asp-for="Notes" class="form-label fw-medium">Ghi chú đặc biệt</label>
+                            <textarea asp-for="Notes" class="form-control" rows="3" placeholder="Yêu cầu đặc biệt về món ăn, vị trí bàn hoặc các yêu cầu khác..."></textarea>
+                            <small class="text-muted">Vui lòng cho chúng tôi biết nếu bạn có nhu cầu đặc biệt</small>
+                            <span asp-validation-for="Notes" class="text-danger"></span>
+                        </div>
+                        
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary btn-lg" id="submitButton">
+                                <i class="fas fa-calendar-check me-2"></i>Xác nhận đặt bàn
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="card shadow mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0"><i class="fas fa-info-circle me-2"></i>Thông tin đặt bàn</h5>
+                </div>
+                <div class="card-body">
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item d-flex">
+                            <div class="me-3 text-primary">
+                                <i class="fas fa-clock fa-fw fa-lg"></i>
+                            </div>
+                            <div>
+                                <h6 class="mb-1">Thời gian giữ bàn</h6>
+                                <p class="small mb-0">Bàn sẽ được giữ trong vòng 15 phút sau thời gian đặt</p>
+                            </div>
+                        </li>
+                        <li class="list-group-item d-flex">
+                            <div class="me-3 text-primary">
+                                <i class="fas fa-calendar-alt fa-fw fa-lg"></i>
+                            </div>
+                            <div>
+                                <h6 class="mb-1">Đặt trước</h6>
+                                <p class="small mb-0">Vui lòng đặt trước ít nhất 2 giờ để đảm bảo có bàn</p>
+                            </div>
+                        </li>
+                        <li class="list-group-item d-flex">
+                            <div class="me-3 text-primary">
+                                <i class="fas fa-ban fa-fw fa-lg"></i>
+                            </div>
+                            <div>
+                                <h6 class="mb-1">Chính sách hủy</h6>
+                                <p class="small mb-0">Bạn có thể hủy đặt bàn 2 giờ trước thời gian dự kiến</p>
+                            </div>
+                        </li>
+                        <li class="list-group-item d-flex">
+                            <div class="me-3 text-primary">
+                                <i class="fas fa-credit-card fa-fw fa-lg"></i>
+                            </div>
+                            <div>
+                                <h6 class="mb-1">Thanh toán</h6>
+                                <p class="small mb-0">Không cần đặt cọc, thanh toán khi dùng bữa</p>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="card shadow">
+                <div class="card-header">
+                    <h5 class="card-title mb-0"><i class="fas fa-phone-alt me-2"></i>Cần trợ giúp?</h5>
+                </div>
+                <div class="card-body">
+                    <p class="mb-2">Nếu bạn có thắc mắc hoặc cần hỗ trợ đặt bàn:</p>
+                    <div class="d-grid gap-2">
+                        <a href="tel:+84123456789" class="btn btn-outline-primary">
+                            <i class="fas fa-phone-alt me-2"></i>0123 456 789
+                        </a>
+                        <a href="mailto:support@restaurant.com" class="btn btn-outline-secondary">
+                            <i class="fas fa-envelope me-2"></i>Gửi email
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    
+    <script>
+        $(document).ready(function () {
+            // Định nghĩa hàm thông báo local trong trường hợp showToast chưa được định nghĩa
+            function localShowToast(message, type) {
+                if (typeof showToast === 'function') {
+                    showToast(message, type);
+                } else {
+                    console.log(message);
+                    if (type === 'warning' || type === 'error') {
+                        alert(message);
+                    }
+                }
+            }
+
+            // Cập nhật số người hiển thị
+            $('#peopleCount').on('input', function() {
+                $('#peopleCountDisplay').text($(this).val());
+            });
+            
+            // Đặt giá trị tối thiểu cho input datetime-local là thời gian hiện tại
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = (now.getMonth() + 1).toString().padStart(2, '0');
+            const day = now.getDate().toString().padStart(2, '0');
+            const hour = now.getHours().toString().padStart(2, '0');
+            const minute = now.getMinutes().toString().padStart(2, '0');
+            
+            const minDateTime = `${year}-${month}-${day}T${hour}:${minute}`;
+            $('#ReservationTime').attr('min', minDateTime);
+            
+            // Lọc bàn theo số người khi nhấn nút "Lọc bàn phù hợp"
+            $('#btnFilterTables').on('click', function() {
+                filterTables();
+            });
+            
+            // Lọc bàn khi số lượng người thay đổi và nhấn Enter
+            $('#peopleCount').on('keypress', function(e) {
+                if (e.which == 13) {
+                    e.preventDefault();
+                    filterTables();
+                }
+            });
+            
+            // Hiển thị thông tin sức chứa khi chọn bàn
+            $('#tableSelect').on('change', function() {
+                const selectedOption = $(this).find('option:selected');
+                if (selectedOption.val()) {
+                    const capacity = selectedOption.data('capacity');
+                    const peopleCount = parseInt($('#peopleCount').val());
+                    
+                    if (peopleCount > capacity) {
+                        $('#tableCapacityInfo').html(`<span class="text-danger"><i class="fas fa-exclamation-triangle"></i> Cảnh báo: Số người vượt quá sức chứa của bàn (tối đa ${capacity} người)!</span>`);
+                    } else {
+                        $('#tableCapacityInfo').html(`<i class="fas fa-check-circle text-success"></i> Bàn này phù hợp cho ${peopleCount} người (sức chứa tối đa: ${capacity} người).`);
+                    }
+                } else {
+                    $('#tableCapacityInfo').html('');
+                }
+            });
+            
+            function filterTables() {
+                const peopleCount = parseInt($('#peopleCount').val());
+                if (isNaN(peopleCount) || peopleCount < 1) {
+                    localShowToast('Vui lòng nhập số người hợp lệ.', 'warning');
+                    return;
+                }
+                
+                // Hiển thị thông báo đang tải
+                $('#tableCapacityInfo').html('<span class="text-info"><i class="fas fa-spinner fa-spin"></i> Đang tìm bàn phù hợp...</span>');
+                
+                // Gọi API để lấy danh sách bàn phù hợp
+                $.ajax({
+                    url: '/Reservation/GetAvailableTables',
+                    data: { peopleCount: peopleCount },
+                    type: 'GET',
+                    success: function(tables) {
+                        // Cập nhật dropdown bàn
+                        const tableSelect = $('#tableSelect');
+                        tableSelect.empty();
+                        tableSelect.append('<option value="">-- Chọn bàn --</option>');
+                        
+                        if (tables && tables.length > 0) {
+                            $('#noTablesMessage').hide();
+                            
+                            // Thêm bàn vào dropdown
+                            tables.forEach(function(table) {
+                                const floorName = table.floor?.name || "Không xác định";
+                                tableSelect.append(`<option value="${table.id}" data-capacity="${table.capacity}">Bàn ${table.name} - ${table.capacity} người - Tầng ${floorName}</option>`);
+                            });
+                            
+                            $('#tableCapacityInfo').html(`<span class="text-success"><i class="fas fa-check-circle"></i> Đã tìm thấy ${tables.length} bàn phù hợp!</span>`);
+                            $('#submitButton').prop('disabled', false);
+                            localShowToast(`Đã tìm thấy ${tables.length} bàn phù hợp cho ${peopleCount} người!`, 'success');
+                        } else {
+                            $('#noTablesMessage').show();
+                            $('#tableCapacityInfo').html('<span class="text-danger"><i class="fas fa-exclamation-circle"></i> Không tìm thấy bàn phù hợp.</span>');
+                            $('#submitButton').prop('disabled', true);
+                            localShowToast('Không tìm thấy bàn phù hợp. Vui lòng thử số người khác.', 'warning');
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('Lỗi API:', error);
+                        $('#tableCapacityInfo').html('<span class="text-danger"><i class="fas fa-exclamation-circle"></i> Không thể lấy danh sách bàn. Vui lòng thử lại sau.</span>');
+                        localShowToast('Không thể lấy danh sách bàn. Vui lòng thử lại sau.', 'error');
+                    }
+                });
+            }
+            
+            // Kiểm tra ngay khi trang tải xong
+            const initialPeopleCount = parseInt($('#peopleCount').val());
+            if (initialPeopleCount > 0) {
+                // Cập nhật số người hiển thị
+                $('#peopleCountDisplay').text(initialPeopleCount);
+                
+                // Kiểm tra nếu có bàn nào phù hợp
+                if ($('#tableSelect option:not(:first-child)').length === 0) {
+                    $('#noTablesMessage').show();
+                    $('#submitButton').prop('disabled', true);
+                }
+            }
+        });
+    </script>
+} 

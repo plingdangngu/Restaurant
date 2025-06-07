@@ -1,0 +1,69 @@
+@model RestaurantManagement.Models.MenuCategory
+
+@{
+    ViewData["Title"] = "Xóa danh mục";
+}
+
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card shadow">
+            <div class="card-header bg-danger text-white">
+                <h4 class="mb-0">@ViewData["Title"]</h4>
+            </div>
+            <div class="card-body">
+                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                
+                <h5 class="alert alert-warning">Bạn có chắc chắn muốn xóa danh mục này?</h5>
+                
+                <dl class="row">
+                    <dt class="col-sm-3">Tên danh mục:</dt>
+                    <dd class="col-sm-9">@Model.Name</dd>
+                    
+                    <dt class="col-sm-3">Mô tả:</dt>
+                    <dd class="col-sm-9">@(string.IsNullOrEmpty(Model.Description) ? "Không có" : Model.Description)</dd>
+                    
+                    <dt class="col-sm-3">Thứ tự hiển thị:</dt>
+                    <dd class="col-sm-9">@Model.DisplayOrder</dd>
+                    
+                    <dt class="col-sm-3">Trạng thái:</dt>
+                    <dd class="col-sm-9">
+                        @if (Model.IsAvailable)
+                        {
+                            <span class="badge bg-success">Đang phục vụ</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-danger">Ngừng phục vụ</span>
+                        }
+                    </dd>
+                    
+                    <dt class="col-sm-3">Số món ăn:</dt>
+                    <dd class="col-sm-9">@Model.MenuItems.Count</dd>
+                </dl>
+                
+                @if (Model.MenuItems.Any())
+                {
+                    <div class="alert alert-danger">
+                        <strong>Cảnh báo!</strong> Không thể xóa danh mục này vì có @Model.MenuItems.Count món ăn thuộc danh mục.
+                        Vui lòng xóa các món ăn hoặc chuyển chúng sang danh mục khác trước khi xóa danh mục này.
+                    </div>
+                }
+                
+                <form asp-action="Delete">
+                    <input type="hidden" asp-for="Id" />
+                    <div class="d-flex justify-content-between mt-3">
+                        <a asp-action="Index" class="btn btn-secondary">
+                            <i class="bi bi-arrow-left"></i> Trở lại
+                        </a>
+                        @if (!Model.MenuItems.Any())
+                        {
+                            <button type="submit" class="btn btn-danger">
+                                <i class="bi bi-trash"></i> Xác nhận xóa
+                            </button>
+                        }
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div> 

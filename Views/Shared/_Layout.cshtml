@@ -1,0 +1,284 @@
+﻿@using Microsoft.AspNetCore.Identity
+@inject SignInManager<ApplicationUser> SignInManager
+
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Quản Lý Nhà Hàng</title>
+    <script type="importmap"></script>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/RestaurantManagement.styles.css" asp-append-version="true" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" integrity="sha512-z3gLpd7yknf1YoNbCzqRKc4qyor8gaKU1qmn+CShxbuBusANI9QpRohGBreCFkKxLhei6S9CQXFEbbKuqLg0DA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    @await RenderSectionAsync("Styles", required: false)
+</head>
+<body>
+    <header>
+        <nav class="navbar navbar-expand-lg navbar-dark">
+            <div class="container-fluid">
+                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="RedirectToHome">
+                    <i class="fas fa-utensils"></i> Quản Lý Nhà Hàng
+                </a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
+                        aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="navbar-collapse collapse d-lg-inline-flex justify-content-between">
+                    <ul class="navbar-nav flex-grow-1">
+                        @if (SignInManager.IsSignedIn(User))
+                        {
+                            @if (User.IsInRole("Admin") || User.IsInRole("Employee"))
+                            {
+                                <li class="nav-item">
+                                    <a class="nav-link" asp-controller="Dashboard" asp-action="Index">
+                                        <i class="fas fa-home"></i> Trang chủ
+                                    </a>
+                                </li>
+                            }
+                            else
+                            {
+                                <li class="nav-item">
+                                    <a class="nav-link" asp-controller="Home" asp-action="RedirectToHome">
+                                        <i class="fas fa-home"></i> Trang chủ
+                                    </a>
+                                </li>
+                            }
+
+                            @if (User.IsInRole("Admin") || User.IsInRole("Employee"))
+                            {
+                                <!-- Menu dành cho Admin -->
+                                <li class="nav-item dropdown">
+                                    <a class="nav-link dropdown-toggle" href="#" id="orderDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                        <i class="fas fa-clipboard-list"></i> Đơn hàng
+                                    </a>
+                                    <ul class="dropdown-menu" aria-labelledby="orderDropdown">
+                                        <li><a class="dropdown-item" asp-controller="Order" asp-action="Index">Quản lý đơn hàng</a></li>
+                                        <li><a class="dropdown-item" asp-controller="Order" asp-action="Create">Tạo đơn hàng mới</a></li>
+                                        <li><hr class="dropdown-divider"></li>
+                                        <li><a class="dropdown-item" onclick="showAddItemModal()"><i class="fas fa-plus-circle"></i> Thêm món ăn vào đơn hàng</a></li>
+                                    </ul>
+                                </li>
+                                <li class="nav-item dropdown">
+                                    <a class="nav-link dropdown-toggle" href="#" id="menuDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                        <i class="fas fa-hamburger"></i> Thực đơn
+                                    </a>
+                                    <ul class="dropdown-menu" aria-labelledby="menuDropdown">
+                                        <li><a class="dropdown-item" asp-controller="MenuItem" asp-action="Index">Danh sách món ăn</a></li>
+                                        <li><a class="dropdown-item" asp-controller="MenuCategory" asp-action="Index">Danh mục món ăn</a></li>
+                                        <li><a class="dropdown-item" asp-controller="MenuItem" asp-action="Create">Thêm món ăn mới</a></li>
+                                    </ul>
+                                </li>
+                                <li class="nav-item dropdown">
+                                    <a class="nav-link dropdown-toggle" href="#" id="tableDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                        <i class="fas fa-chair"></i> Bàn
+                                    </a>
+                                    <ul class="dropdown-menu" aria-labelledby="tableDropdown">
+                                        <li><a class="dropdown-item" asp-controller="Table" asp-action="Index">Quản lý bàn</a></li>
+                                        <li><a class="dropdown-item" asp-controller="Floor" asp-action="Index">Quản lý khu vực</a></li>
+                                    </ul>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" asp-controller="Customer" asp-action="Index">
+                                        <i class="fas fa-users"></i> Khách hàng
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" asp-controller="Invoice" asp-action="Index">
+                                        <i class="fas fa-receipt"></i> Hóa đơn
+                                    </a>
+                                </li>
+                                <li class="nav-item dropdown">
+                                    <a class="nav-link dropdown-toggle" href="#" id="adminDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                        <i class="fas fa-cogs"></i> Quản trị
+                                    </a>
+                                    <ul class="dropdown-menu" aria-labelledby="adminDropdown">
+                                        <li><a class="dropdown-item" asp-controller="User" asp-action="Index">Quản lý người dùng</a></li>
+                                        <li><a class="dropdown-item" asp-controller="Account" asp-action="ChangePassword">Đổi mật khẩu</a></li>
+                                    </ul>
+                                </li>
+                            }
+                            else
+                            {
+                                <!-- Menu dành cho User (khách hàng) -->
+                                <li class="nav-item">
+                                    <a class="nav-link" asp-controller="MenuItem" asp-action="CustomerMenu">
+                                        <i class="fas fa-hamburger"></i> Thực đơn
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" asp-controller="Reservation" asp-action="Create">
+                                        <i class="fas fa-calendar-plus"></i> Đặt bàn
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" asp-controller="Order" asp-action="MyOrders">
+                                        <i class="fas fa-shopping-cart"></i> Đơn hàng của tôi
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" asp-controller="Reservation" asp-action="MyReservations">
+                                        <i class="fas fa-clipboard-list"></i> Đơn đặt của tôi
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" asp-controller="Table" asp-action="AvailableTables">
+                                        <i class="fas fa-chair"></i> Bàn còn trống
+                                    </a>
+                                </li>
+                            }
+                        }
+                        else
+                        {
+                            <!-- Menu cho khách chưa đăng nhập -->
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="Home" asp-action="RedirectToHome">
+                                    <i class="fas fa-home"></i> Trang chủ
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="MenuItem" asp-action="CustomerMenu">
+                                    <i class="fas fa-utensils"></i> Khám phá thực đơn
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="Home" asp-action="About">
+                                    <i class="fas fa-info-circle"></i> Giới thiệu
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="Home" asp-action="Contact">
+                                    <i class="fas fa-envelope"></i> Liên hệ
+                                </a>
+                            </li>
+                        }
+                    </ul>
+                    <partial name="_LoginPartial" />
+                </div>
+            </div>
+        </nav>
+    </header>
+    
+    <div class="container">
+        <main role="main" class="pb-3">
+            @RenderBody()
+        </main>
+    </div>
+
+    <footer class="mt-5">
+        <div class="container py-4">
+            <div class="row">
+                <div class="col-md-6 mb-3 mb-md-0">
+                    <h5 class="mb-3"><i class="fas fa-utensils me-2"></i> Quản Lý Nhà Hàng</h5>
+                    <p class="mb-0">Hệ thống quản lý nhà hàng hiện đại, hiệu quả và dễ sử dụng.</p>
+                    <p>&copy; @DateTime.Now.Year - Tất cả các quyền được bảo lưu.</p>
+                </div>
+                <div class="col-md-3 mb-3 mb-md-0">
+                    <h6 class="mb-3">Liên kết nhanh</h6>
+                    <ul class="list-unstyled mb-0">
+                        <li class="mb-2"><a href="/" class="text-light text-decoration-none"><i class="fas fa-angle-right me-1"></i> Trang chủ</a></li>
+                        <li class="mb-2"><a href="/MenuItem/CustomerMenu" class="text-light text-decoration-none"><i class="fas fa-angle-right me-1"></i> Thực đơn</a></li>
+                        <li class="mb-2"><a href="/Reservation/Create" class="text-light text-decoration-none"><i class="fas fa-angle-right me-1"></i> Đặt bàn</a></li>
+                        <li class="mb-2"><a href="/Home/Contact" class="text-light text-decoration-none"><i class="fas fa-angle-right me-1"></i> Liên hệ</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-3">
+                    <h6 class="mb-3">Kết nối với chúng tôi</h6>
+                    <div class="d-flex">
+                        <a href="#" class="text-light me-3 fs-5"><i class="fab fa-facebook"></i></a>
+                        <a href="#" class="text-light me-3 fs-5"><i class="fab fa-instagram"></i></a>
+                        <a href="#" class="text-light me-3 fs-5"><i class="fab fa-twitter"></i></a>
+                        <a href="#" class="text-light fs-5"><i class="fab fa-youtube"></i></a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+    
+    <!-- Modal chọn đơn hàng để thêm món -->
+    <div class="modal fade" id="addItemModal" tabindex="-1" aria-labelledby="addItemModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addItemModalLabel">Chọn đơn hàng để thêm món</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="orderSelect" class="form-label">Đơn hàng</label>
+                        <select id="orderSelect" class="form-select">
+                            <option value="">Đang tải danh sách...</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                    <button type="button" class="btn btn-primary" id="goToAddItem">Tiếp tục</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    <script>
+        function showAddItemModal() {
+            // Định nghĩa hàm thông báo local trong trường hợp showToast chưa được định nghĩa
+            function localShowToast(message, type) {
+                if (typeof showToast === 'function') {
+                    showToast(message, type);
+                } else {
+                    console.log(message);
+                    if (type === 'warning' || type === 'error') {
+                        alert(message);
+                    }
+                }
+            }
+            
+            // Tải danh sách đơn hàng đang xử lý
+            $.ajax({
+                url: '/Order/GetActiveOrders',
+                type: 'GET',
+                success: function(data) {
+                    let options = '<option value="">-- Chọn đơn hàng --</option>';
+                    data.forEach(function(order) {
+                        options += `<option value="${order.id}">Đơn #${order.id} - Bàn ${order.tableName}</option>`;
+                    });
+                    $('#orderSelect').html(options);
+                    $('#addItemModal').modal('show');
+                },
+                error: function() {
+                    localShowToast('Không thể tải danh sách đơn hàng. Vui lòng thử lại sau.', 'error');
+                }
+            });
+        }
+        
+        $(document).ready(function() {
+            // Định nghĩa hàm thông báo local trong trường hợp showToast chưa được định nghĩa
+            function localShowToast(message, type) {
+                if (typeof showToast === 'function') {
+                    showToast(message, type);
+                } else {
+                    console.log(message);
+                    if (type === 'warning' || type === 'error') {
+                        alert(message);
+                    }
+                }
+            }
+            
+            $('#goToAddItem').click(function() {
+                const orderId = $('#orderSelect').val();
+                if (orderId) {
+                    window.location.href = `/Order/AddItem/${orderId}`;
+                } else {
+                    localShowToast('Vui lòng chọn một đơn hàng.', 'warning');
+                }
+            });
+        });
+    </script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

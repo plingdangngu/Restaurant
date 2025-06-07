@@ -1,0 +1,56 @@
+@model RestaurantManagement.ViewModels.MoveTableViewModel
+
+@{
+    ViewData["Title"] = "Chuyển bàn";
+}
+
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card shadow">
+            <div class="card-header bg-warning text-dark">
+                <h4 class="mb-0">@ViewData["Title"]</h4>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-info">
+                    <p>Bạn đang chuyển bàn <strong>@Model.SourceTableName</strong> (Tầng: @Model.SourceFloorName) sang bàn khác.</p>
+                    <p class="mb-0">Tất cả đơn hàng hiện tại của bàn này sẽ được chuyển sang bàn mới.</p>
+                </div>
+                
+                <form asp-action="MoveTable">
+                    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                    <input type="hidden" asp-for="SourceTableId" />
+                    <input type="hidden" asp-for="SourceTableName" />
+                    <input type="hidden" asp-for="SourceFloorName" />
+                    
+                    <div class="mb-3">
+                        <label asp-for="TargetTableId" class="form-label">Chọn bàn đích</label>
+                        <select asp-for="TargetTableId" asp-items="ViewBag.TargetTableId" class="form-select">
+                            <option value="">-- Chọn bàn đích --</option>
+                        </select>
+                        <span asp-validation-for="TargetTableId" class="text-danger"></span>
+                        <small class="form-text text-muted">Chỉ hiển thị các bàn đang trống</small>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label asp-for="Note" class="form-label">Ghi chú</label>
+                        <textarea asp-for="Note" class="form-control" rows="3"></textarea>
+                        <span asp-validation-for="Note" class="text-danger"></span>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between">
+                        <a asp-action="Index" class="btn btn-secondary">
+                            <i class="bi bi-arrow-left"></i> Trở lại
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-arrow-left-right"></i> Xác nhận chuyển bàn
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+} 

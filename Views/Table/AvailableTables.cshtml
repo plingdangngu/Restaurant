@@ -1,0 +1,107 @@
+@model IEnumerable<RestaurantManagement.Models.Table>
+
+@{
+    ViewData["Title"] = "Bàn còn trống";
+    var floors = (List<RestaurantManagement.Models.Floor>)ViewData["Floors"];
+    var selectedFloorId = ViewData["SelectedFloorId"] as int?;
+}
+
+<div class="container-fluid px-4">
+    <h1 class="mt-4">@ViewData["Title"]</h1>
+    <ol class="breadcrumb mb-4">
+        <li class="breadcrumb-item"><a href="/">Trang chủ</a></li>
+        <li class="breadcrumb-item active">Bàn còn trống</li>
+    </ol>
+
+    <div class="mb-3">
+        <form asp-action="AvailableTables" method="get" class="row g-3 align-items-center">
+            <div class="col-md-3">
+                <label for="floorId" class="form-label">Chọn tầng:</label>
+                <select id="floorId" name="floorId" class="form-select" onchange="this.form.submit()">
+                    <option value="">-- Tất cả các tầng --</option>
+                    @foreach (var floor in floors)
+                    {
+                        @if (selectedFloorId == floor.Id)
+                        {
+                            <option value="@floor.Id" selected>@floor.Name</option>
+                        }
+                        else
+                        {
+                            <option value="@floor.Id">@floor.Name</option>
+                        }
+                    }
+                </select>
+            </div>
+        </form>
+    </div>
+
+    @if (!Model.Any())
+    {
+        <div class="alert alert-info">
+            <h4 class="alert-heading">Không tìm thấy bàn trống!</h4>
+            <p>Hiện tại tất cả các bàn đều đã được đặt. Vui lòng quay lại sau hoặc liên hệ với nhà hàng để được hỗ trợ.</p>
+            <hr>
+            <div class="d-grid gap-2 d-md-flex justify-content-md-start">
+                <a asp-controller="MenuItem" asp-action="CustomerMenu" class="btn btn-primary">
+                    <i class="fas fa-utensils me-2"></i>Xem thực đơn
+                </a>
+                <a asp-controller="Home" asp-action="Contact" class="btn btn-outline-primary">
+                    <i class="fas fa-phone me-2"></i>Liên hệ với chúng tôi
+                </a>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="row row-cols-1 row-cols-md-3 row-cols-lg-4 g-4">
+            @foreach (var item in Model)
+            {
+                <div class="col">
+                    <div class="card h-100 shadow-sm">
+                        <div class="card-header bg-success text-white">
+                            <h5 class="mb-0">Bàn @item.Name</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="d-flex flex-column h-100">
+                                <div>
+                                    <p class="mb-2">
+                                        <i class="fas fa-building me-2"></i>
+                                        <strong>Tầng:</strong> @item.Floor?.Name
+                                    </p>
+                                    <p class="mb-2">
+                                        <i class="fas fa-users me-2"></i>
+                                        <strong>Sức chứa:</strong> @item.Capacity người
+                                    </p>
+                                    <p class="mb-3">
+                                        <i class="fas fa-check-circle me-2 text-success"></i>
+                                        <strong>Trạng thái:</strong> 
+                                        <span class="badge bg-success">Còn trống</span>
+                                    </p>
+                                </div>
+                                <div class="mt-auto pt-3 text-center">
+                                    <a asp-controller="Reservation" asp-action="Create" class="btn btn-primary" 
+                                       onclick="localStorage.setItem('selectedTableId', '@item.Id');">
+                                        <i class="fas fa-calendar-plus me-2"></i>Đặt bàn ngay
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            // Khi nhấn vào nút "Đặt bàn ngay", lưu ID bàn vào localStorage
+            // để có thể sử dụng ở trang Đặt bàn
+            $('.btn-book-table').click(function() {
+                const tableId = $(this).data('table-id');
+                localStorage.setItem('selectedTableId', tableId);
+            });
+        });
+    </script>
+} 
