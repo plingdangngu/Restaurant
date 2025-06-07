@@ -157,7 +157,7 @@ namespace RestaurantManagement.Controllers
             var isAdmin = User.IsInRole("Admin");
             var isEmployee = User.IsInRole("Employee");
             
-            if (order.EmployeeId != currentUserId && !isAdmin && !isEmployee)
+            if (order.EmployeeId != currentUserId && order.CustomerId != currentUserId && order.UserId != currentUserId && !isAdmin && !isEmployee)
             {
                 return Forbid();
             }
@@ -329,7 +329,7 @@ namespace RestaurantManagement.Controllers
         }
 
         // GET: Order/AddItem/5
-        [Authorize(Roles = "Admin,Employee")]
+        [Authorize]
         public async Task<IActionResult> AddItem(int? id)
         {
             if (id == null)
@@ -341,6 +341,16 @@ namespace RestaurantManagement.Controllers
             if (order == null)
             {
                 return NotFound();
+            }
+
+            // Kiểm tra quyền truy cập: người dùng phải là chủ đơn hàng hoặc có quyền Admin/Employee
+            var currentUserId = _userManager.GetUserId(User);
+            var isAdmin = User.IsInRole("Admin");
+            var isEmployee = User.IsInRole("Employee");
+            
+            if (order.CustomerId != currentUserId && order.UserId != currentUserId && !isAdmin && !isEmployee)
+            {
+                return Forbid();
             }
 
             // Kiểm tra trạng thái của đơn hàng
@@ -376,7 +386,7 @@ namespace RestaurantManagement.Controllers
         // POST: Order/AddItem
         [HttpPost]
         [ValidateAntiForgeryToken]
-        [Authorize(Roles = "Admin,Employee")]
+        [Authorize]
         public async Task<IActionResult> AddItem(AddItemViewModel viewModel)
         {
             // Loại bỏ validation của các trường không bắt buộc
@@ -388,6 +398,16 @@ namespace RestaurantManagement.Controllers
             if (order == null)
             {
                 return NotFound();
+            }
+
+            // Kiểm tra quyền truy cập: người dùng phải là chủ đơn hàng hoặc có quyền Admin/Employee
+            var currentUserId = _userManager.GetUserId(User);
+            var isAdmin = User.IsInRole("Admin");
+            var isEmployee = User.IsInRole("Employee");
+            
+            if (order.CustomerId != currentUserId && order.UserId != currentUserId && !isAdmin && !isEmployee)
+            {
+                return Forbid();
             }
 
             if (ModelState.IsValid)
@@ -428,7 +448,7 @@ namespace RestaurantManagement.Controllers
         }
 
         // GET: Order/RemoveItem/5
-        [Authorize(Roles = "Admin,Employee")]
+        [Authorize]
         public async Task<IActionResult> RemoveItem(int? id, int? orderId)
         {
             if (id == null || orderId == null)
@@ -440,6 +460,16 @@ namespace RestaurantManagement.Controllers
             if (order == null)
             {
                 return NotFound();
+            }
+
+            // Kiểm tra quyền truy cập: người dùng phải là chủ đơn hàng hoặc có quyền Admin/Employee
+            var currentUserId = _userManager.GetUserId(User);
+            var isAdmin = User.IsInRole("Admin");
+            var isEmployee = User.IsInRole("Employee");
+            
+            if (order.CustomerId != currentUserId && order.UserId != currentUserId && !isAdmin && !isEmployee)
+            {
+                return Forbid();
             }
 
             var result = await _orderService.RemoveItemFromOrderAsync(id.Value);
@@ -509,7 +539,7 @@ namespace RestaurantManagement.Controllers
         // POST: Order/AddMultipleItems
         [HttpPost]
         [ValidateAntiForgeryToken]
-        [Authorize(Roles = "Admin,Employee")]
+        [Authorize]
         public async Task<IActionResult> AddMultipleItems(int orderId, string cartItems, string notes)
         {
             // Kiểm tra đơn hàng
@@ -517,6 +547,16 @@ namespace RestaurantManagement.Controllers
             if (order == null)
             {
                 return NotFound();
+            }
+
+            // Kiểm tra quyền truy cập: người dùng phải là chủ đơn hàng hoặc có quyền Admin/Employee
+            var currentUserId = _userManager.GetUserId(User);
+            var isAdmin = User.IsInRole("Admin");
+            var isEmployee = User.IsInRole("Employee");
+            
+            if (order.CustomerId != currentUserId && order.UserId != currentUserId && !isAdmin && !isEmployee)
+            {
+                return Forbid();
             }
 
             // Kiểm tra trạng thái đơn hàng
